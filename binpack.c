@@ -186,8 +186,8 @@ bool pack_bin(struct output out[], struct input r[], const size_t length,
 
 bool resize(struct output out[], struct input r[], const size_t length,
             unsigned *bin_width, unsigned *bin_height, struct mbin mb, size_t index) {
-  /* When a bin fills all the space available, pack_bin */
 
+  /* When a bin fills all the space available, pack_bin */
   for (size_t i = index; i < length; i++) {
     unsigned limitcheck = 0;
     while (pack_bin(out, r, length, bin_width, bin_height, mb)) {
@@ -210,14 +210,18 @@ bool resize(struct output out[], struct input r[], const size_t length,
   unsigned w = 0, h = 0;
   for (size_t i = index; i < length; i++) {
     if (w < (out[i].w + out[i].x)) {
-      w = out[i].w + out[i].x;
+      w = out[i].w + out[i].x + mb.gaps;
     }
     if (h < (out[i].h + out[i].y)) {
-      h = out[i].h + out[i].y;
+      h = out[i].h + out[i].y + mb.gaps;
     }
   }
 
-  if (h >= mb.y - mb.gaps) {
+  if (h >= mb.y + (mb.gaps / 2)) {
+    return false;
+  }
+   
+  if (w >= mb.x + (mb.gaps / 2)) {
     return false;
   }
   return true;
