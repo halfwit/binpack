@@ -74,7 +74,7 @@ void sort_bins(struct bins b[], size_t *bin_count) {
   struct bins temp;
   for (unsigned i = 1; i < *bin_count; i++) {
     for (unsigned j = 0; j < *bin_count - i; j++) {
-      if ((b[j + 1].w * b[j + 1].h) < (b[j].w * b[j].h)) {
+      if ((b[j + 1].w * b[j + 1].h) > (b[j].w * b[j].h)) {
         temp = b[j];
         b[j] = b[j + 1];
         b[j + 1] = temp;
