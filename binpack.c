@@ -27,19 +27,6 @@ struct bins {
   unsigned x, y, w, h;
 };
 
-size_t create_rect(struct input r[]);
-void center(const size_t length, struct output r[], struct mbin mb);
-void sort_bins(struct bins b[], size_t *bin_count);
-void sort_input(struct input r[], const size_t length);
-void create_bins(struct bins bin[], struct output out[], size_t i, size_t j,
-                 size_t *bin_count, struct mbin mb);
-void save_rect(struct bins bin[], struct output out[], struct input r[],
-               size_t i, size_t j, struct mbin mb);
-bool pack_bin(struct output out[], struct input r[], const size_t length,
-              unsigned *bin_width, unsigned *bin_height, struct mbin mb);
-bool resize(struct output out[], struct input r[], const size_t length,
-            unsigned *bin_width, unsigned *bin_height, struct mbin mb, size_t index);
-
 size_t create_rect(struct input r[]) {
   /* Read from stdin, create each rect */
   size_t length = 0;
