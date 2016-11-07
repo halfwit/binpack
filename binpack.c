@@ -88,6 +88,7 @@ sort_input(struct input r[], const size_t length)
 {
 	struct input temp;
 
+	/* Cumulative area of all bins */
 	for (size_t i = 1; i < length; i++) {
 		for (size_t j = 0; j < length - i; j++) {
 			if ((r[j + 1].max_w * r[j + 1].min_h) > (r[j].max_w * r[j].min_h)) {
@@ -191,15 +192,15 @@ resize(const size_t length, struct output out[], struct mbin mb, struct input r[
 
 		/* if binpack succeeds, we can grow --> set min as current, else set max as current */
 		if(pack_bin(length, out, mb, r) && r[i].max_w - r[i].min_w > 1) {
-			r[i].max_w = (r[i].min_w + r[i].max_w) / 2;
-		} else {
 			r[i].min_w = (r[i].min_w + r[i].max_w) / 2;
+		} else {
+			r[i].max_w = (r[i].min_w + r[i].max_w) / 2;
 		}
 
 		if(pack_bin(length, out, mb, r) && r[i].max_h - r[i].min_h > 1) {
-			r[i].max_h = (r[i].min_h + r[i].max_h) / 2;
-		} else{
 			r[i].min_h = (r[i].min_h + r[i].max_h) / 2;
+		} else {
+			r[i].max_h = (r[i].min_h + r[i].max_h) / 2;
 		}
 	}
 
@@ -218,22 +219,18 @@ main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "hg:x:y:")) != -1) {
 		switch (c) {
 		/* read in, all vars unsigned int */
-		case 'g': {
+		case 'g':
 			sscanf(optarg, "%u", &mb.gaps);
 			break;
-		}
-		case 'x': {
+		case 'x':
 			sscanf(optarg, "%u", &mb.x);
 			break;
-		}
-		case 'y': {
+		case 'y':
 			sscanf(optarg, "%u", &mb.y);
 			break;
-		}
-		case 'h': {
+		case 'h':
 			fprintf(stderr, "Usage: %s -x screen_width -y screen_height -g gaps\n", argv[0]);
 			return EXIT_SUCCESS;
-		}
 		}
 	}
 
@@ -247,12 +244,22 @@ main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 
+	/* If bin area is more than available area, exit */
 	sort_input(r, length);
 
 	/* Initial pack to establish out bins */
 	pack_bin(length, out, mb, r);
 
 	while(resize(length, out, mb, r));
+
+	unsigned area = 0;
+	for (size_t i = 0; i < length; i++) {
+		area+=out[i].w * out[i].h;
+	}
+
+	/* If we have more windows than space */
+	if (area > (mb.x - mb.gaps) * (mb.y - mb.gaps))
+		return EXIT_SUCCESS;
 
 	center(length, out, mb);
 
