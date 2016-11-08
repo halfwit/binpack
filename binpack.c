@@ -60,19 +60,6 @@ sort_bins(struct bins b[], size_t *bin_count) {
 
 	for (unsigned i = 1; i < *bin_count; i++) {
 		for (unsigned j = 0; j < *bin_count - i; j++) {
-			/* If two bins can be logically made in to one bin, do so */
-			if (b[j + 1].x == b[j].x + b[j].w && b[j + 1].y == b[j].y && b[j].h == b[j].h) {
-				b[j].w += b[j + 1].w;
-				b[j + 1].h = 0;
-				b[j + 1].w = 0;
-				continue;
-			}
-			if (b[j + 1].y == b[j].y + b[j].h && b[j + 1].x == b[j].x && b[j + 1].w == b[j].w) {
-				b[j].h += b[j + 1].h;
-				b[j + 1].h = 0;
-				b[j + 1].w = 0;
-				continue;
-			}
 			if ((b[j + 1].w * b[j + 1].h) > (b[j].w * b[j].h)) {
 				temp = b[j];
 				b[j] = b[j + 1];
@@ -80,6 +67,27 @@ sort_bins(struct bins b[], size_t *bin_count) {
 			}
 		}
 	}
+}
+
+void
+scrub_bins(struct bins b[], size_t *bin_count) {
+    
+    for (unsigned i = 1; i < *bin_count; i++) {
+		if(b[i].w == 0 || b[i].h == 0)
+				continue;
+		for (unsigned j = 0; j < *bin_count -i; j++) {
+
+				if (b[j].w == 0 || b[j].h == 0 || i == j)
+						continue;
+				
+				if (b[j].y == b[i].y && b[j].h == b[i].h) {
+						b[i].h += b[j].h;
+						b[j].h = 0;
+						b[j].w = 0;
+						continue;
+				}
+		}
+    }
 }
 
 /* arrange rectangles largest to smallest */
@@ -117,7 +125,7 @@ create_bins(struct bins bin[], struct output out[], size_t i, size_t j, size_t *
 		bin[j].h -= (out[i].h - mb.gaps);
 		*bin_count += 1;
 	}
-
+	
 	/* rect same height */
 	else if (out[i].h + mb.gaps < h) {
 		bin[j].y += (out[i].h + mb.gaps);
@@ -169,6 +177,7 @@ pack_bin(const size_t length, struct output out[], struct mbin mb, struct input 
 				save_rect(bin, out, r, i, j, mb);
 				create_bins(bin, out, i, j, &bin_count, mb);
 				sort_bins(bin, &bin_count);
+				scrub_bins(bin, &bin_count);
 				break;
 			}
 		}
