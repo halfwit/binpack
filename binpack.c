@@ -71,23 +71,33 @@ sort_bins(struct bins b[], size_t *bin_count) {
 
 void
 scrub_bins(struct bins b[], size_t *bin_count) {
-    
-    for (unsigned i = 1; i < *bin_count; i++) {
+	if (*bin_count == 1)
+		return;
+		
+	for (unsigned i = 1; i < *bin_count; i++) {
 		if(b[i].w == 0 || b[i].h == 0)
+			continue;
+		for (unsigned j = 0; j < *bin_count - 1; j++) {
+			
+			/* Skip if same bin */
+			if (i == j)
 				continue;
-		for (unsigned j = 0; j < *bin_count -i; j++) {
-
-				if (b[j].w == 0 || b[j].h == 0 || i == j)
-						continue;
 				
-				if (b[j].y == b[i].y && b[j].h == b[i].h) {
-						b[i].h += b[j].h;
-						b[j].h = 0;
-						b[j].w = 0;
-						continue;
-				}
+			/* Same row */
+			if (b[j].y == b[i].y && b[j].h == b[i].h) {
+				b[j].w += b[i].w;
+				b[i].h = 0;
+				b[i].w = 0;
+			}
+			
+			/* Same column */
+			if (b[j].x == b[i].x && b[j].w == b[i].w) {
+				b[j].h += b[i].h;
+				b[i].h = 0;
+				b[i].w = 0;
+			}
 		}
-    }
+	}	
 }
 
 /* arrange rectangles largest to smallest */
@@ -119,7 +129,7 @@ create_bins(struct bins bin[], struct output out[], size_t i, size_t j, size_t *
 	h = bin[j].h;
 
 	/* rect smaller, make two sub bins */
-	if (out[i].h + mb.gaps < h && out[i].w + mb.gaps < w) {
+	if (out[i].h <= h && out[i].w <= w) {
 		bin[*bin_count] = (struct bins){x + out[i].w + mb.gaps, y, w - out[i].w - mb.gaps, h};
 		bin[j].y += (out[i].h + mb.gaps);
 		bin[j].h -= (out[i].h - mb.gaps);
@@ -127,13 +137,13 @@ create_bins(struct bins bin[], struct output out[], size_t i, size_t j, size_t *
 	}
 	
 	/* rect same height */
-	else if (out[i].h + mb.gaps < h) {
+	else if (out[i].h == h) {
 		bin[j].y += (out[i].h + mb.gaps);
 		bin[j].h -= (out[i].h - mb.gaps);
 	}
 
 	/* rect same width */
-	else if (out[i].w + mb.gaps < w) {
+	else if (out[i].w == w) {
 		bin[j].x += (out[i].w + mb.gaps);
 		bin[j].w -= (out[i].w - mb.gaps);
 	}
@@ -164,60 +174,92 @@ pack_bin(const size_t length, struct output out[], struct mbin mb, struct input 
 	/* default bin */
 	bin[0] = (struct bins){ 0, 0, mb.x, mb.y};
 	size_t bin_count = 1;
-	bool rect_fits;
+	size_t packed = 0;
 
 	/* loop through each rect */
 	for (size_t i = 0; i < length; i++) {
-		rect_fits = false;
 
 		/* loop through each bin */
 		for (size_t j = 0; j < bin_count; j++) {
 			if ((r[i].min_w + r[i].max_w) / 2 <= bin[j].w && (r[i].min_h + r[i].max_h) / 2 <= bin[j].h) {
-				rect_fits = true;
+				packed++;
 				save_rect(bin, out, r, i, j, mb);
 				create_bins(bin, out, i, j, &bin_count, mb);
-				sort_bins(bin, &bin_count);
 				scrub_bins(bin, &bin_count);
+				sort_bins(bin, &bin_count);
 				break;
 			}
 		}
-		if (rect_fits == false)
-			return true;
+	}
+	if (packed == length) {
+		return true;
 	}
 	return false;
 }
 
 bool
-resize(const size_t length, struct output out[], struct mbin mb, struct input r[])
+resizewidth(const size_t length, struct output out[], struct mbin mb, struct input r[])
+{
+	size_t packed = 0;
+	for (size_t i = 0; i < length; i++) {
+
+		/* If we're within 1, bin is fully packed */
+		if (r[i].max_w - r[i].min_w < 2) {
+			packed++;
+			continue;
+		}
+		
+		/* In case something goes wonky */
+		if (r[i].min_w > r[i].max_w) {
+			r[i].max_w = r[i].min_w;
+			r[i].min_w--;
+		}
+
+		/* if binpack succeeds, we can grow --> set min as current, else set max as current */
+		if(pack_bin(length, out, mb, r)) {
+			r[i].min_w = (r[i].min_w + r[i].max_w) / 2;
+		} else {
+			r[i].max_w = (r[i].min_w + r[i].max_w) / 2;
+		}
+	}
+
+	if (packed == length) {
+		return false;
+	}
+	return true;
+}
+bool
+resizeheight(const size_t length, struct output out[], struct mbin mb, struct input r[])
 {
 	size_t packed_bin = 0;
 	for (size_t i = 0; i < length; i++) {
 
 		/* If we're within 1, bin is fully packed */
-		if (r[i].max_h - r[i].min_h < 2 && r[i].max_w - r[i].min_w < 2) {
+		if (r[i].max_h - r[i].min_h < 2) {
 			packed_bin++;
 			continue;
 		}
+		
 
-		/* if binpack succeeds, we can grow --> set min as current, else set max as current */
-		if(pack_bin(length, out, mb, r) && r[i].max_w - r[i].min_w > 1) {
-			r[i].min_w = (r[i].min_w + r[i].max_w) / 2;
-		} else {
-			r[i].max_w = (r[i].min_w + r[i].max_w) / 2;
+		/* In case something goes wonky */
+		if (r[i].min_h > r[i].max_h) {
+			r[i].max_w = r[i].min_w;
+			r[i].min_w--;
 		}
-
-		if(pack_bin(length, out, mb, r) && r[i].max_h - r[i].min_h > 1) {
+		
+		/* if binpack succeeds, we can grow --> set min as current, else set max as current */
+		if(pack_bin(length, out, mb, r)) {
 			r[i].min_h = (r[i].min_h + r[i].max_h) / 2;
 		} else {
 			r[i].max_h = (r[i].min_h + r[i].max_h) / 2;
 		}
 	}
 
-	if (packed_bin == length)
+	if (packed_bin == length) {
 		return false;
+	}
 	return true;
 }
-
 
 int
 main(int argc, char *argv[])
@@ -253,13 +295,12 @@ main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 
-	/* If bin area is more than available area, exit */
 	sort_input(r, length);
 
 	/* Initial pack to establish out bins */
 	pack_bin(length, out, mb, r);
 
-	while(resize(length, out, mb, r));
+	while(resizeheight(length, out, mb, r) && resizewidth(length, out, mb, r));
 
 	unsigned area = 0;
 	for (size_t i = 0; i < length; i++) {
