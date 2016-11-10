@@ -106,7 +106,6 @@ sort_input(struct input r[], const size_t length)
 {
 	struct input temp;
 
-	/* Cumulative area of all bins */
 	for (size_t i = 1; i < length; i++) {
 		for (size_t j = 0; j < length - i; j++) {
 			if ((r[j + 1].max_w * r[j + 1].min_h) > (r[j].max_w * r[j].min_h)) {
@@ -159,7 +158,7 @@ void
 save_rect(struct bins bin[], struct output out[], struct input r[], size_t i, size_t j, struct mbin mb)
 {
 	/* Store rect x y w h wid */
-	out[i] = (struct output){bin[j].x + (mb.gaps / 2), bin[j].y + (mb.gaps / 2), r[i].min_w, r[i].min_h, r[i].wid};
+	out[i] = (struct output){bin[j].x + (mb.gaps / 2), bin[j].y + (mb.gaps / 2), (r[i].min_w + r[i].max_w) / 2, (r[i].min_h + r[i].max_h) / 2, r[i].wid};
 }
 
 bool
@@ -181,6 +180,7 @@ pack_bin(const size_t length, struct output out[], struct mbin mb, struct input 
 
 		/* loop through each bin */
 		for (size_t j = 0; j < bin_count; j++) {
+			/* If rect fits bin, store it */
 			if ((r[i].min_w + r[i].max_w) / 2 <= bin[j].w && (r[i].min_h + r[i].max_h) / 2 <= bin[j].h) {
 				packed++;
 				save_rect(bin, out, r, i, j, mb);
@@ -243,8 +243,8 @@ resizeheight(const size_t length, struct output out[], struct mbin mb, struct in
 
 		/* In case something goes wonky */
 		if (r[i].min_h > r[i].max_h) {
-			r[i].max_w = r[i].min_w;
-			r[i].min_w--;
+			r[i].max_h = r[i].min_h;
+			r[i].min_h--;
 		}
 		
 		/* if binpack succeeds, we can grow --> set min as current, else set max as current */
@@ -300,7 +300,10 @@ main(int argc, char *argv[])
 	/* Initial pack to establish out bins */
 	pack_bin(length, out, mb, r);
 
-	while(resizeheight(length, out, mb, r) && resizewidth(length, out, mb, r));
+	int foo = 0;
+	while(resizeheight(length, out, mb, r) && resizewidth(length, out, mb, r)) {
+		printf("%d\n", ++foo);
+	}
 
 	unsigned area = 0;
 	for (size_t i = 0; i < length; i++) {
