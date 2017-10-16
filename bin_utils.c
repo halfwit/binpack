@@ -3,6 +3,7 @@
 
 #include "binpack.h"
 
+// center all windows on given screen
 void center(unsigned width, unsigned height, struct Output out[], unsigned gaps) {
 	// r = rightmost edge of bins
 	// d = bottommost edge of bins
@@ -12,8 +13,8 @@ void center(unsigned width, unsigned height, struct Output out[], unsigned gaps)
 	// x - g, y + g, w - g, h - g for all windows 
 }
 
-void
-sort_bins(struct Input r[], const size_t length) {
+// sort our input
+void sort_bins(struct Input r[], const size_t length) {
 	/* arrange rectangles largest to smallest, normalized some over min/max */
 	struct Input temp;
 	for (size_t i = 1; i < length; i++) {
@@ -27,8 +28,8 @@ sort_bins(struct Input r[], const size_t length) {
 	}
 }
 
-size_t
-init_bins(struct Input r[]) {
+// read from stdin, setting up our initial data
+size_t init_bins(struct Input r[]) {
 	size_t length = 0;
 	char line[MAX_BIN];
 	for (unsigned i = 0; fgets(line, sizeof(line), stdin); ++i) {
@@ -39,18 +40,18 @@ init_bins(struct Input r[]) {
 	return length;
 }
 
-void
-split(struct Input in[], struct Input a[], struct Input b[], size_t length) {
+// given in[], seperate by even and odd into a[] and b[]
+void split(struct Input in[], struct Input a[], struct Input b[], size_t length) {
 	
 }
 
-void
-offset(struct Output out[], unsigned w) {
+// Add w width to each out[n].x (moving the window on to the next monitor)
+void offset(struct Output out[], unsigned w) {
 	
 }
 
-void
-print_bin(struct Output out[], size_t length) {
+// Loop through a given bin, printing all to stdout if values are present
+void print_bin(struct Output out[], size_t length) {
 	for (size_t i=0; i < length; i++) {
 		if (out[i].w > 0 && out[i].h > 0) {
 			printf("%d %d %d %d %lx\n", out[i].x, out[i].y, out[i].w, out[i].h, out[i].wid);
@@ -58,6 +59,7 @@ print_bin(struct Output out[], size_t length) {
     }
 }
 
+// Remove element from array, returning it for use 
 struct Input pop(struct Input in[]) {
 	size_t len = sizeof(*in)/sizeof(in[0]);
 	struct Input temp = in[1];
@@ -72,6 +74,7 @@ struct Input pop(struct Input in[]) {
 	return temp;
 }
 
+// append element on to array
 void push(struct Input in[], struct Input temp) {
 	size_t len = sizeof(*in)/sizeof(in[0]);
 	in[len] = temp;
