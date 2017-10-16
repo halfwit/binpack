@@ -12,20 +12,19 @@ int main(int argc, char* argv[]) {
 	unsigned height = 0;
 	unsigned screens = 1;
 	char c;
-	
-	while ((c = getopt(argc, argv, "hg:w:h:s:")) != -1) {
+	while ((c = getopt(argc, argv, "hg:s:x:y:")) != -1) {
 		switch (c) {
 		case 'g':
-			sscanf(optarg, "%u", gaps);
+			sscanf(optarg, "%u", &gaps);
 	        break;
     	case 'x':
-        	sscanf(optarg, "%u", width);
+        	sscanf(optarg, "%u", &width);
            	break;
         case 'y':
-        	sscanf(optarg, "%u", height);
+        	sscanf(optarg, "%u", &height);
         	break;
     	case 's':
-        	sscanf(optarg, "%u", screens);
+        	sscanf(optarg, "%u", &screens);
         	break;
     	case 'h':
 			fputs("Usage: bin_pack -x screen_width -y screen_height -g gaps -s number_of_screens\n", stderr);
@@ -37,38 +36,56 @@ int main(int argc, char* argv[]) {
 	struct Output output[MAX_BIN];
 	
 	const size_t length = init_bins(input);
+	printf("here %d\n", input[0].minw);
 	
 	/* Sanity checks */
 	if (length == 0 || height == 0 || width == 0)
 		return EXIT_SUCCESS;
 
 	sort_bins(input, length);
-
-	switch (screens) {
-		case 1:	   		
-	   		bin_pack(width, height, output, input);
-	   		center(width, height, output, gaps);
-	   		break;
-
-		case 2:
-//	   		split total width into two 'bins'
-//	   		split into two Input, a and b
-//	   		bin_pack a and b
-//	  		center a and b
-//	  		add $width to all bins in b (shift to the right fro second monitor)
-	  		break;
-		case 3:
-//	   		split total width into three 'bins'
-//	   		bin_pack a
-//	    	- if bin_pack fails, split out second window into bin b
-//			- sanity check that there is infact a second window
-//	    	- all subsequent fails will split out second window into bin b
-//	   		once success, split b into two Input, b and c
-//	   		bin_pack b and c
-//	   		center a b and c
-//	   		add $width to everything in b, and 2 * $width to everything in c
-			break;
+	
+	// Normal function	
+	if (screens == 1) {
+	   	binary_bin_pack(width, height, output, input);
+	   	center(width, height, output, gaps);
+		print_bin(output, length);
+		return EXIT_SUCCESS;
 	}
-//	print everything to stdout
+	// More than one screen will need a few more data types
+	struct Input in_a[MAX_BIN/2], in_b[MAX_BIN/2];
+	struct Output out_a[MAX_BIN/2], out_b[MAX_BIN/2];
+		
+	if (screens == 2) {
+		split(input, in_a, in_b, length);
+		binary_bin_pack(width/2, height, out_a, in_a);
+		binary_bin_pack(width/2, height, out_b, in_b);
+	  	center(width/2, height, out_a, gaps);
+		center(width/2, height, out_b, gaps);
+		offset(out_b, width/2);			
+		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
+		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
+	 }
+/* Need to implement something sane for pop/push
+	if (screens == 3) {
+		unsigned temp = 0;
+		bool bin_switch = true;
+		// Ugly logic - while bin_pack fails, we pop out into flanking bins
+		// bin_pack will pass if it has <= 1 element to keep logic clean
+		while (!bin_pack(width/3, height, output, input)) {
+//			temp = pop(input);
+//			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
+			bin_switch = !bin_switch;
+		}
+		binary_bin_pack(width/3, height, out_a, in_a);
+		binary_bin_pack(width/3, height, out_b, in_b);
+		center(width/3, height, &output, gaps);
+		center(width/3, height, &out_a, gaps);
+		center(width/3, height, &out_b, gaps);
+		offset(&output, width/3);
+		offset(&out_b, width*2/3);
+		print_bin(output, sizeof(output)/sizeof(output[0]));
+		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
+		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
+	}
+*/
 }
-

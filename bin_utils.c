@@ -38,3 +38,22 @@ init_bins(struct Input r[]) {
 	}
 	return length;
 }
+
+void
+split(struct Input in[], struct Input a[], struct Input b[], size_t length) {
+	
+}
+
+void
+offset(struct Output out[], unsigned w) {
+	
+}
+
+void
+print_bin(struct Output out[], size_t length) {
+	for (size_t i=0; i < length; i++) {
+		if (out[i].w > 0 && out[i].h > 0) {
+			printf("%d %d %d %d %lx\n", out[i].x, out[i].y, out[i].w, out[i].h, out[i].wid);
+		}
+    }
+}

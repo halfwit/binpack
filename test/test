@@ -4,7 +4,7 @@
 cd "$(dirname $0)"
 for i in */in*; do
 	size="$(dirname "$i")"
-	in="$(binpack -x "${size%x*}" -y "${size#*x}" -g 6 < "$i")"
+	in="$(binpack -x "${size%x*}" -y "${size#*x}" -g 6 < "$i", -s 1)"
 	echo "$in"
 	#grep "$in" "$size/out${i#*in*}" >/dev/null && echo "Test $size - ${i#*in*} success"
 done
