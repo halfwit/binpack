@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#define MAX_BIN 64
+
 struct Input {
 	unsigned minw;
 	unsigned minh;
@@ -16,4 +18,7 @@ struct Output {
 	unsigned id;
 };
 
-bool bin_pack(unsigned width, unsigned height, struct Output[], struct Input[]);
+void bin_pack(unsigned width, unsigned height, struct Output out[], struct Input in[]);
+void center(unsigned width, unsigned height, struct Output out[], unsigned gaps);
+void sort_bins(struct Input r[], const size_t length);
+size_t init_bins(struct Input r[]);
