@@ -1,18 +1,19 @@
+#include <stdbool.h>
+
 struct Input {
-	int minw;
-	int minh;
-	int maxw;
-	int maxh;
-	int id;
+	unsigned minw;
+	unsigned minh;
+	unsigned maxw;
+	unsigned maxh;
+	unsigned wid;
 };
 
 struct Output {
-	int w;
-	int h;
-	int x;
-	int y;
-	int id;
+	unsigned w;
+	unsigned h;
+	unsigned x;
+	unsigned y;
+	unsigned id;
 };
 
-//bool bin_pack(int width, int height, &output[], &input[]);
-
+bool bin_pack(unsigned width, unsigned height, struct Output[], struct Input[]);
