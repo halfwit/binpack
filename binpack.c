@@ -1,337 +1,73 @@
-/* Simple bin packing algorithm implementation */
-
-#include <stdlib.h>
 #include <stdio.h>
-#include <getopt.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include <getopt.h>
 
-enum {
-	MAX_RECTS	= 50,
-	LINE_LNG	= 50
-};
+#include "binpack.h"
 
-struct mbin {
-	unsigned x, y, gaps;
-};
-
-struct input {
-	unsigned min_w, min_h, max_w, max_h;
-	unsigned long wid;
-};
-
-struct output {
-	unsigned x, y, w, h;
-	unsigned long wid;
-};
-
-struct bins {
-  /* temporary storage of available sub-bins */
-  unsigned x, y, w, h;
-};
-
-size_t
-binpack_init(struct input r[])
-{
-
-	/* Read from stdin, create each rect */
-	size_t length = 0;
-	char line[LINE_LNG];
-	for (unsigned i = 0; fgets(line, sizeof(line), stdin); ++i) {
-		sscanf(line, "%d %d %d %d %lx", &r[i].min_w, &r[i].min_h, &r[i].max_w, &r[i].max_h, &r[i].wid);
-		length++;
-	}
-
-	return length;
-
+void center(int width, int height, struct Output out[], int gaps) {
+	// r = rightmost edge of bins
+	// d = bottommost edge of bins
+	// Move all windows (width - r) / 2
+	// Move all windows (height - d) / 2
+	// g = gaps / 2
+	// x - g, y + g, w - g, h - g for all windows 
 }
 
-void
-center(const size_t length, struct output r[], struct mbin mb)
-{
+int 
+main(int argc, char* argv[]) {
 
-	/* (max bin size - blob size) / 2 */
-	unsigned w = 0, h = 0;
-	for (size_t i = 0; i < length; i++) {
-		if (w < (r[i].w + r[i].x))
-			w = r[i].w + r[i].x;
-
-		if (h < (r[i].h + r[i].y))
-			h = r[i].h + r[i].y;
-	}
-
-	for (size_t i = 0; i < length; i++) {
-		r[i].x += (mb.x - w) / 2;
-		r[i].y += (mb.y - h) / 2;
-	}
-
-}
-
-void
-sort_bins(struct bins b[], size_t *bin_count)
-{
-
-	/* given set of bins, arrange them smallest to largest w*h */
-	struct bins temp;
-	for (unsigned i = 1; i < *bin_count; i++) {
-		for (unsigned j = 0; j < *bin_count - i; j++) {
-			if ((b[j + 1].w * b[j + 1].h) > (b[j].w * b[j].h)) {
-				temp = b[j];
-				b[j] = b[j + 1];
-				b[j + 1] = temp;
-			}
-		}
-	}
-
-}
-
-void
-sort_input(struct input r[], const size_t length)
-{
-
-	/* arrange rectangles largest to smallest, normalized some over min/max */
-	struct input temp;
-	for (size_t i = 1; i < length; i++) {
-		for (size_t j = 0; j < length - i; j++) {
-			if ((r[j + 1].max_w * r[j + 1].min_h) > (r[j].max_w * r[j].min_h)) {
-				temp = r[j];
-				r[j] = r[j + 1];
-				r[j + 1] = temp;
-			}
-		}
-	}
-
-}
-
-void
-create_bins(struct bins bin[], struct output out[], size_t i, size_t j, size_t *bin_count, struct mbin mb)
-{
-
-	/* New bins based on subsection of old  */
-	unsigned x, y, w, h;
-	x = bin[j].x;
-	y = bin[j].y;
-	w = bin[j].w;
-	h = bin[j].h;
-
-	/* rect smaller, make two sub bins */
-	if (out[i].h + mb.gaps < h && out[i].w + mb.gaps < w) {
-		bin[*bin_count] = (struct bins){.x = x + out[i].w + mb.gaps, .y = y, .w = w - out[i].w - mb.gaps, .h = h};
-		bin[j].y += (out[i].h + mb.gaps);
-		bin[j].h -= (out[i].h - mb.gaps);
-		*bin_count += 1;
-	}
-
-	/* rect same height */
-	else if (out[i].h + mb.gaps < h) {
-		bin[j].y += (out[i].h + mb.gaps);
-		bin[j].h -= (out[i].h - mb.gaps);
-	}
-
-	/* rect same width */
-	else if (out[i].w + mb.gaps < w) {
-		bin[j].x += (out[i].w + mb.gaps);
-    	bin[j].w -= (out[i].w - mb.gaps);
-	}
-
-	/* rect fills space, lose a bin */
-	else {
-		bin[j].w = 0;
-		bin[j].h = 0;
-		*bin_count -= 1;
-	}
-
-}
-
-void
-save_rect(struct bins bin[], struct output out[], struct input r[], size_t i, size_t j, struct mbin mb)
-{
-
-	/* Store rect x y w h wid */
-	out[i] = (struct output){.x = bin[j].x + (mb.gaps / 2), .y = bin[j].y + (mb.gaps / 2), .w = r[i].min_w, .h = r[i].min_h, .wid = r[i].wid};
-
-}
-
-bool
-pack_bin(struct output out[], struct input r[], const size_t length, unsigned *bin_width, unsigned *bin_height, struct mbin mb)
-{
-
-	/* Main algorithm */
-	struct bins bin[MAX_RECTS];
-
-	for (int i = 0; i < MAX_RECTS; i++) {
-		bin[i] = (struct bins){.x = 0, .y = 0, .w = 0, .h = 0};
-	}
-
-	/* default bin */
-	bin[0] = (struct bins){ .x = 0, .y = 0, .w = *bin_width + mb.gaps, .h = *bin_height + mb.gaps};
-
-	size_t bin_count = 1;
-	bool rect_fits;
-
-	/* loop through each rect */
-	for (size_t i = 0; i < length; i++) {
-		rect_fits = false;
-
-		/* loop through each bin */
-		for (size_t j = 0; j < bin_count; j++) {
-			/* rect fits in current bin */
-			if (r[i].min_w + mb.gaps <= bin[j].w && r[i].min_h + mb.gaps <= bin[j].h) {
-				rect_fits = true;
-				save_rect(bin, out, r, i, j, mb);
-				create_bins(bin, out, i, j, &bin_count, mb);
-				sort_bins(bin, &bin_count);
-				break;
-			}
-		}
-
-		/* if rect does not fit all bin */
-		if (rect_fits == false) {
-
-			/* Grow main bin if possible */
-			if (mb.x > *bin_width)
-				*bin_width += 2;
-
-			if (mb.y > *bin_height)
-				*bin_height += 2;
-
-			return true;
-		}
-	}
-
-	return false;
-
-}
-
-bool
-resize(struct output out[], struct input r[], const size_t length, unsigned *bin_width, unsigned *bin_height, struct mbin mb, size_t index)
-{
-
-	/* When a bin fills all the space available, pack_bin */
-	for (size_t i = index; i < length; i++) {
-		unsigned limitcheck = 0;
-		while (pack_bin(out, r, length, bin_width, bin_height, mb)) {
-			if (limitcheck == mb.x)
-				return false;
-
-			limitcheck++;
-		}
-
-		/* If rect can grow */
-		if (out[i].h < r[i].max_h)
-			r[i].min_h += 1;
-
-		if (out[i].w < r[i].max_w)
-			r[i].min_w += 1;
-
-		sort_input(r, length);
-	}
-
-	/* max_h to handle cases of smaller windows */
-	unsigned w = 0, h = 0;
-
-	for (size_t i = index; i < length; i++) {
-		if (w < (out[i].w + out[i].x))
-			w = out[i].w + out[i].x + mb.gaps;
-
-		if (h < (out[i].h + out[i].y))
-			h = out[i].h + out[i].y + mb.gaps;
-	}
-
-	if (h >= mb.y + (mb.gaps / 2))
-		return false;
-
-	if (w >= mb.x + (mb.gaps / 2))
-		return false;
-
-	return true;
-
-}
-
-int
-main(int argc, char *argv[])
-{
-
-	struct mbin mb;
-	mb.gaps = 0, mb.x = 0, mb.y = 0;
-	int c;
-
-	while ((c = getopt(argc, argv, "hg:x:y:")) != -1) {
+	int gaps = 0;
+	int width = 0;
+	int height = 0;
+	int screens = 1;
+	char c;
+	
+	while ((c = getopt(argc, argv, "hg:w:h:s:")) != -1) {
 		switch (c) {
-		/* read in, all vars unsigned int */
 		case 'g':
-			sscanf(optarg, "%u", &mb.gaps);
-			break;
-		case 'x':
-			sscanf(optarg, "%u", &mb.x);
-			break;
-		case 'y':
-			sscanf(optarg, "%u", &mb.y);
-			break;
-		case 'h':
-			fputs("Usage: bin_pack -x screen_width -y screen_height -g gaps\n", stderr);
+			sscanf(optarg, "%u", gaps);
+	        break;
+    	case 'x':
+        	sscanf(optarg, "%u", width);
+           	break;
+        case 'y':
+        	sscanf(optarg, "%u", height);
+        	break;
+    	case 's':
+        	sscanf(optarg, "%u", screens);
+        	break;
+    	case 'h':
+			fputs("Usage: bin_pack -x screen_width -y screen_height -g gaps -s number_of_screens\n", stderr);
 			return EXIT_SUCCESS;
-		}
+        }
 	}
 
-	struct input r[MAX_RECTS];
-	struct output out[MAX_RECTS];
+	switch (screens) {
+		case 1:	   		
+//	   		bin_pack(width, height, *output, *input);
+//	   		center(width, height, *output, gaps);
+	   		break;
 
-	const size_t length = (binpack_init(r));
-
-	/* If we have no windows, exit */
-	if (length == 0 || mb.x == 0 || mb.y == 0)
-		return EXIT_SUCCESS;
-
-	sort_input(r, length);
-
-	unsigned bin_width = mb.x;
-	unsigned bin_height = mb.y;
-
-	/* If we have no large windows */
-	bool no_large_windows = true;
-	for (size_t i = 0; i < length; i++) {
-		struct input temp = r[i];
-		r[i].min_w = r[i].max_w;
-		r[i].min_h = r[i].max_h;
-
-		if (pack_bin(out, r, length, &bin_width, &bin_height, mb)) {
-			r[i] = temp;
-			no_large_windows = false;
-		}
+		case 2:
+//	   		split total width into two 'bins'
+//	   		split into two Input, a and b
+//	   		bin_pack a and b
+//	  		center a and b
+//	  		add $width to all bins in b (shift to the right fro second monitor)
+	  		break;
+		case 3:
+//	   		split total width into three 'bins'
+//	   		bin_pack a
+//	    	- if bin_pack fails, split out second window into bin b
+//			- sanity check that there is infact a second window
+//	    	- all subsequent fails will split out second window into bin b
+//	   		once success, split b into two Input, b and c
+//	   		bin_pack b and c
+//	   		center a b and c
+//	   		add $width to everything in b, and 2 * $width to everything in c
+			break;
 	}
-
-	unsigned limitcheck = 0;
-
-	if (no_large_windows == false) {
-		bin_width = r[0].min_w;
-		bin_height = r[0].min_h;
-
-		while (pack_bin(out, r, length, &bin_width, &bin_height, mb)) {
-			/* if we've ran this long, something is up */
-			if (limitcheck == mb.x)
-				return EXIT_FAILURE;
-
-			limitcheck++;
-		}
-
-		limitcheck = 0;
-
-		for (size_t i = 0; i < length; i++) {
-			/* Square out the blob as best as we can */
-			while (resize(out, r, length, &bin_width, &bin_height, mb, i)) {
-				if (limitcheck == mb.x)
-					return EXIT_FAILURE;
-
-				limitcheck++;
-			}
-		}
-	}
-
-	center(length, out, mb);
-
-	for (size_t i = 0; i < length; i++) {
-		printf("%d %d %d %d %lx\n", out[i].x, out[i].y, out[i].w, out[i].h, out[i].wid);
-	}
-
-	return EXIT_SUCCESS;
+//	print everything to stdout
 }
+

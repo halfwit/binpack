@@ -1,8 +1,9 @@
 #!/bin/sh
 ## Assume standard 6 px gap
 
-for i in */in**; do
+cd "$(dirname $0)"
+for i in */in*; do
 	size="$(dirname "$i")"
 	in="$(binpack -x "${size%x*}" -y "${size#*x}" -g 6 < "$i")"
-	grep -q "$in" "$size/out${i#*in*}" && echo "Test $size - ${i#*in*} success"
+	grep "$in" "$size/out${i#*in*}" >/dev/null && echo "Test $size - ${i#*in*} success"
 done
