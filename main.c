@@ -65,27 +65,27 @@ int main(int argc, char* argv[]) {
 		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
 		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
 	 }
-/* Need to implement something sane for pop/push
+
 	if (screens == 3) {
-		unsigned temp = 0;
+		struct Input temp;
 		bool bin_switch = true;
 		// Ugly logic - while bin_pack fails, we pop out into flanking bins
 		// bin_pack will pass if it has <= 1 element to keep logic clean
 		while (!bin_pack(width/3, height, output, input)) {
-//			temp = pop(input);
-//			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
+			temp = pop(input);
+			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
 			bin_switch = !bin_switch;
 		}
 		binary_bin_pack(width/3, height, out_a, in_a);
 		binary_bin_pack(width/3, height, out_b, in_b);
-		center(width/3, height, &output, gaps);
-		center(width/3, height, &out_a, gaps);
-		center(width/3, height, &out_b, gaps);
-		offset(&output, width/3);
-		offset(&out_b, width*2/3);
+		center(width/3, height, output, gaps);
+		center(width/3, height, out_a, gaps);
+		center(width/3, height, out_b, gaps);
+		offset(output, width/3);
+		offset(out_b, width*2/3);
 		print_bin(output, sizeof(output)/sizeof(output[0]));
 		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
 		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
 	}
-*/
+
 }

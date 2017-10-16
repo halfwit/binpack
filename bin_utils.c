@@ -57,3 +57,22 @@ print_bin(struct Output out[], size_t length) {
 		}
     }
 }
+
+struct Input pop(struct Input in[]) {
+	size_t len = sizeof(*in)/sizeof(in[0]);
+	struct Input temp = in[1];
+	for (size_t i = 1; i < len - 1; i++) {
+		in[i] = in[i+1];
+	}
+	in[len].minw = 0;
+	in[len].maxw = 0;
+	in[len].minh = 0;
+	in[len].maxh = 0;
+	in[len].wid  = 0;
+	return temp;
+}
+
+void push(struct Input in[], struct Input temp) {
+	size_t len = sizeof(*in)/sizeof(in[0]);
+	in[len] = temp;
+}

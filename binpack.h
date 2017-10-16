@@ -26,3 +26,5 @@ void sort_bins(struct Input r[], const size_t length);
 void print_bin(struct Output out[], size_t length);
 void offset(struct Output out[], unsigned w);
 size_t init_bins(struct Input r[]);
+struct Input pop(struct Input in[]);
+void push(struct Input in[], struct Input temp);
