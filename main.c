@@ -36,7 +36,6 @@ int main(int argc, char* argv[]) {
 	struct Output output[MAX_BIN];
 	
 	const size_t length = init_bins(input);
-	printf("here %d\n", input[0].minw);
 	
 	/* Sanity checks */
 	if (length == 0 || height == 0 || width == 0)
@@ -44,33 +43,44 @@ int main(int argc, char* argv[]) {
 
 	sort_bins(input, length);
 	
-	// Normal function	
+	/* Normal function */	
 	if (screens == 1) {
+		/* binpack.c */
 	   	binary_bin_pack(width, height, output, input);
+
+		/* bin_utils.c */
 	   	center(width, height, output, gaps);
 		print_bin(output, length);
 		return EXIT_SUCCESS;
 	}
-	// More than one screen will need a few more data types
+	/* More than one screen will need a few more data types */
 	struct Input in_a[MAX_BIN/2], in_b[MAX_BIN/2];
 	struct Output out_a[MAX_BIN/2], out_b[MAX_BIN/2];
-		
+	
+	/* Sort into two bins and pack each seperately */
 	if (screens == 2) {
 		split(input, in_a, in_b, length);
+		for (size_t i = 0; i < (length/2) - 1; i ++) {
+			printf("a %z b %z\n", in_a[i], in_b[i]);
+		}	
+		/* binpack.c */
 		binary_bin_pack(width/2, height, out_a, in_a);
 		binary_bin_pack(width/2, height, out_b, in_b);
-	  	center(width/2, height, out_a, gaps);
+	  	
+		/* bin_utils.c */
+		center(width/2, height, out_a, gaps);
 		center(width/2, height, out_b, gaps);
 		offset(out_b, width/2);			
 		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
 		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
 	 }
 
+	/* Ugly logic - while bin_pack fails, move an element into one of two flanking bins, alternating bins each time */
 	if (screens == 3) {
 		struct Input temp;
 		bool bin_switch = true;
-		// Ugly logic - while bin_pack fails, we pop out into flanking bins
-		// bin_pack will pass if it has <= 1 element to keep logic clean
+		
+		/* binpack.c */
 		while (!bin_pack(width/3, height, output, input)) {
 			temp = pop(input);
 			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
@@ -78,6 +88,8 @@ int main(int argc, char* argv[]) {
 		}
 		binary_bin_pack(width/3, height, out_a, in_a);
 		binary_bin_pack(width/3, height, out_b, in_b);
+		
+		/* bin_utils.c */
 		center(width/3, height, output, gaps);
 		center(width/3, height, out_a, gaps);
 		center(width/3, height, out_b, gaps);

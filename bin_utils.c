@@ -42,12 +42,22 @@ size_t init_bins(struct Input r[]) {
 
 // given in[], seperate by even and odd into a[] and b[]
 void split(struct Input in[], struct Input a[], struct Input b[], size_t length) {
-	
+	bool bin_switch = true;
+	for (size_t i = 0; i < length; i++) {
+		if (bin_switch) {
+			a[i/2] = in[i];
+		} else {
+			b[i/2] = in[i];
+		}
+		bin_switch = !bin_switch;
+	}
 }
 
 // Add w width to each out[n].x (moving the window on to the next monitor)
 void offset(struct Output out[], unsigned w) {
-	
+	for (size_t i = 0; i < sizeof(*out)/sizeof(out[0]); i++) {
+		out[i].x += w;
+	}
 }
 
 // Loop through a given bin, printing all to stdout if values are present
