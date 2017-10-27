@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 	/* More than one screen will need a few more data types */
-	struct Input in_a[MAX_BIN/2], in_b[MAX_BIN/2];
-	struct Output out_a[MAX_BIN/2], out_b[MAX_BIN/2];
+	struct Input in_a[MAX_BIN/2 + 1], in_b[MAX_BIN/2 + 1];
+	struct Output out_a[MAX_BIN/2 + 1], out_b[MAX_BIN/2 + 1];
 	
 	/* Sort into two bins and pack each seperately */
 	if (screens == 2) {
 		split(input, in_a, in_b, length);
-		for (size_t i = 0; i < (length/2) - 1; i ++) {
-			printf("a %z b %z\n", in_a[i], in_b[i]);
+		for (size_t i = 0; i <= sizeof(*in_a)/sizeof(in_a[0]); i++) {
+			printf("a %d b %d\n", in_a[i].maxw, in_b[i].maxw);
 		}	
 		/* binpack.c */
 		binary_bin_pack(width/2, height, out_a, in_a);

@@ -41,13 +41,21 @@ size_t init_bins(struct Input r[]) {
 }
 
 // given in[], seperate by even and odd into a[] and b[]
-void split(struct Input in[], struct Input a[], struct Input b[], size_t length) {
+void split(struct Input *in, struct Input *a, struct Input *b, size_t length) {
 	bool bin_switch = true;
 	for (size_t i = 0; i < length; i++) {
 		if (bin_switch) {
-			a[i/2] = in[i];
+			a[i/2].minw = in[i].minw;
+			a[i/2].minh = in[i].minh;
+			a[i/2].maxw = in[i].maxw;
+			a[i/2].maxh = in[i].maxh;
+			a[i/2].wid  = in[i].wid;
 		} else {
-			b[i/2] = in[i];
+			b[i/2].minw = in[i].minw;
+			b[i/2].minh = in[i].minh;
+			b[i/2].maxw = in[i].maxw;
+			b[i/2].maxh = in[i].maxh;
+			b[i/2].wid  = in[i].wid;
 		}
 		bin_switch = !bin_switch;
 	}
