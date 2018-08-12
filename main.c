@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
 	/* Sort into two bins and pack each seperately */
 	if (screens == 2) {
 		split(input, in_a, in_b, length);
-		for (size_t i = 0; i <= sizeof(*in_a)/sizeof(in_a[0]); i++) {
-			printf("a %d b %d\n", in_a[i].maxw, in_b[i].maxw);
-		}	
+		//for (size_t i = 0; i <= sizeof(*in_a)/sizeof(in_a[0]); i++) {
+		//	printf("a %d b %d\n", in_a[i].maxw, in_b[i].maxw);
+		//}	
 		/* binpack.c */
 		binary_bin_pack(width/2, height, out_a, in_a);
 		binary_bin_pack(width/2, height, out_b, in_b);
@@ -75,21 +75,34 @@ int main(int argc, char* argv[]) {
 		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
 	 }
 
-	/* Ugly logic - while bin_pack fails, move an element into one of two flanking bins, alternating bins each time */
+
+	// TODO: Implement triple head sorting and splitting
+	/*
 	if (screens == 3) {
-		struct Input temp;
 		bool bin_switch = true;
 		
-		/* binpack.c */
-		while (!bin_pack(width/3, height, output, input)) {
-			temp = pop(input);
+		struct Current temp;
+		struct Current c[MAX_BIN];
+		unsigned count = sizeof(input)/sizeof(input[0]);
+		for (unsigned i = 0; i < count; i++) {
+			c[i].w = input[i].maxw; 
+			c[i].h = input[i].maxh;
+			c[i].wid = input[i].wid;
+		}
+		
+		// binpack.c 
+		
+		while (!bin_pack(width/3, height, c, output, count)) {
+			temp = pop(c);
 			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
 			bin_switch = !bin_switch;
 		}
+
 		binary_bin_pack(width/3, height, out_a, in_a);
 		binary_bin_pack(width/3, height, out_b, in_b);
-		
-		/* bin_utils.c */
+	
+		// bin_utils.c
+
 		center(width/3, height, output, gaps);
 		center(width/3, height, out_a, gaps);
 		center(width/3, height, out_b, gaps);
@@ -98,6 +111,7 @@ int main(int argc, char* argv[]) {
 		print_bin(output, sizeof(output)/sizeof(output[0]));
 		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
 		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
-	}
+		
+	}*/
 
 }

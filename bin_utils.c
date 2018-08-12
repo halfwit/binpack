@@ -33,7 +33,7 @@ size_t init_bins(struct Input r[]) {
 	size_t length = 0;
 	char line[MAX_BIN];
 	for (unsigned i = 0; fgets(line, sizeof(line), stdin); ++i) {
-		sscanf(line, "%d %d %d %d %lx", &r[i].minw, &r[i].minh, &r[i].maxw, &r[i].maxh, &r[i].wid
+		sscanf(line, "%u %u %u %u %X", &r[i].minw, &r[i].minh, &r[i].maxw, &r[i].maxh, &r[i].wid
 );
 		length++;
 	}
@@ -72,28 +72,8 @@ void offset(struct Output out[], unsigned w) {
 void print_bin(struct Output out[], size_t length) {
 	for (size_t i=0; i < length; i++) {
 		if (out[i].w > 0 && out[i].h > 0) {
-			printf("%d %d %d %d %lx\n", out[i].x, out[i].y, out[i].w, out[i].h, out[i].wid);
+			printf("%u %u %u %u 0x%.8X\n", out[i].x, out[i].y, out[i].w, out[i].h, out[i].wid);
 		}
     }
 }
 
-// Remove element from array, returning it for use 
-struct Input pop(struct Input in[]) {
-	size_t len = sizeof(*in)/sizeof(in[0]);
-	struct Input temp = in[1];
-	for (size_t i = 1; i < len - 1; i++) {
-		in[i] = in[i+1];
-	}
-	in[len].minw = 0;
-	in[len].maxw = 0;
-	in[len].minh = 0;
-	in[len].maxh = 0;
-	in[len].wid  = 0;
-	return temp;
-}
-
-// append element on to array
-void push(struct Input in[], struct Input temp) {
-	size_t len = sizeof(*in)/sizeof(in[0]);
-	in[len] = temp;
-}

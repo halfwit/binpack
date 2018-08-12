@@ -18,8 +18,14 @@ struct Output {
 	unsigned wid;
 };
 
+struct Current {
+	unsigned w;
+	unsigned h;
+	unsigned wid;
+};
+
 void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struct Input in[]);
-bool bin_pack(unsigned width, unsigned height, struct Output out[], struct Input in[]);
+bool bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count);
 void split(struct Input *in, struct Input *a, struct Input *b, size_t length);
 void center(unsigned width, unsigned height, struct Output out[], unsigned gaps);
 void sort_bins(struct Input r[], const size_t length);
