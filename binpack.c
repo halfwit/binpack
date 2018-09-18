@@ -97,7 +97,7 @@ void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struc
 	}
 }
 
-// Should pass a pointer to the struct here
+// TODO: Should pass a pointer to the struct here
 bool
 bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count) {
 	

@@ -13,7 +13,6 @@ void center(unsigned width, unsigned height, struct Output out[], unsigned gaps)
 	// x - g, y + g, w - g, h - g for all windows 
 }
 
-// sort our input
 void sort_bins(struct Input r[], const size_t length) {
 	/* arrange rectangles largest to smallest, normalized some over min/max */
 	struct Input temp;

@@ -42,6 +42,10 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 
 	sort_bins(input, length);
+
+	if (screens > 3) {
+		//usage;
+		return EXIT_FAILURE;
 	
 	/* Normal function */	
 	if (screens == 1) {
@@ -53,17 +57,15 @@ int main(int argc, char* argv[]) {
 		print_bin(output, length);
 		return EXIT_SUCCESS;
 	}
+	
 	/* More than one screen will need a few more data types */
 	struct Input in_a[MAX_BIN/2 + 1], in_b[MAX_BIN/2 + 1];
 	struct Output out_a[MAX_BIN/2 + 1], out_b[MAX_BIN/2 + 1];
 	
 	/* Sort into two bins and pack each seperately */
 	if (screens == 2) {
-		split(input, in_a, in_b, length);
-		//for (size_t i = 0; i <= sizeof(*in_a)/sizeof(in_a[0]); i++) {
-		//	printf("a %d b %d\n", in_a[i].maxw, in_b[i].maxw);
-		//}	
 		/* binpack.c */
+		split(input, in_a, in_b, length);
 		binary_bin_pack(width/2, height, out_a, in_a);
 		binary_bin_pack(width/2, height, out_b, in_b);
 	  	
@@ -80,7 +82,7 @@ int main(int argc, char* argv[]) {
 	/*
 	if (screens == 3) {
 		bool bin_switch = true;
-		
+
 		struct Current temp;
 		struct Current c[MAX_BIN];
 		unsigned count = sizeof(input)/sizeof(input[0]);
@@ -91,18 +93,17 @@ int main(int argc, char* argv[]) {
 		}
 		
 		// binpack.c 
-		
 		while (!bin_pack(width/3, height, c, output, count)) {
 			temp = pop(c);
 			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
 			bin_switch = !bin_switch;
 		}
 
+		// TODO: Guard against empty structs
 		binary_bin_pack(width/3, height, out_a, in_a);
 		binary_bin_pack(width/3, height, out_b, in_b);
 	
 		// bin_utils.c
-
 		center(width/3, height, output, gaps);
 		center(width/3, height, out_a, gaps);
 		center(width/3, height, out_b, gaps);
