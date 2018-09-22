@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
 	if (screens > 3) {
 		//usage;
 		return EXIT_FAILURE;
+	}
 	
 	/* Normal function */	
 	if (screens == 1) {

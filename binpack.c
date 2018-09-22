@@ -3,11 +3,7 @@
 #include <stdlib.h>
 
 #include "binpack.h"
-
-struct Point {
-	unsigned x;
-	unsigned y;
-};
+#include "points.h"
 
 // Test to see if any bins are already at minimum size, so we can fail gracefully (Insufficient space to draw windows)
 bool isminw(struct Input in[], struct Current c[], unsigned count) {
@@ -97,28 +93,39 @@ void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struc
 	}
 }
 
-// TODO: Should pass a pointer to the struct here
 bool
 bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count) {
+
+/*
+
+	Two special cases here require further point
+	negotiation.
+	|----------------|------|	|-------------|x|--|
+	|                |      |	|             |x|  |
+	|       #1       |      |	|             |x|  |
+	|                |  #3  |	|     #1      |x|#3|
+	|------------|---|      |	|             |x|  |
+	|            |xxx|      |	|             |x|  |
+	|     #2     |---|--|---|	|---------------|  |
+	|            |  #4  |    	|       #2      |--|
+	|------------|------|    	|---------------|
 	
-	// Initialize our output
+	# First window
+	In the case of placing window #4, we test previous points for >= y && >= x than a point we're testing. An example where this would be true is the bottom left corner of window #3 - we attempt to place with our point starting on the same y access as the bottom of #3. In this case it fits.
+	We could even test point 2, and since it's a point on the same axis, we know there's something likely obstructing.
+
+	# Second window
+	First we test #3 to fit, against the secont point (which is the bottom right of #1). It doesn't fit, as #2 is blocking.
+	We now test future points for >= x && >= y points. The top right of #2 meets both reqs, We use that same x axis to place window 3, since it won't fit.
+
+*/
+
 	for (unsigned i = 0; i < count; i++) {
 		out[i].w = c[i].w;
 		out[i].h = c[i].h;
 		out[i].x = 0;
 		out[i].y = 0;
 		out[i].wid = c[i].wid;
-	} 
-	
-	// Initialize points
-
-	// Loop through each member of c
-	// while {
-	// 	 check if points need to be removed
-	//   tree[n].x = Someholder + width
-	//	 tree[n].y = Someholder + height
-	// }
-	// minw minh maxw maxh wid
-
+	}
 	return true;
 }

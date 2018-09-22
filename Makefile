@@ -2,8 +2,10 @@
 # See LICENSE file for copyright and license details.
 
 SRC = main.c    \
+	  points.c  \
 	  binpack.c \
 	  bin_utils.c
+
 OBJ = ${SRC:.c=.o}
 
 all: binpack
