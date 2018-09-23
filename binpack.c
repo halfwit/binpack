@@ -96,29 +96,22 @@ void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struc
 bool
 bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count) {
 
-/*
+	// Set first window at (0,0)
+	out[0].w = c[0].w;
+	out[0].h = c[0].h;
+	out[0].x = 0;
+	out[0].y = 0;
+	out[0].wid = c[0].wid;
 
-	Two special cases here require further point
-	negotiation.
-	|----------------|------|	|-------------|x|--|
-	|                |      |	|             |x|  |
-	|       #1       |      |	|             |x|  |
-	|                |  #3  |	|     #1      |x|#3|
-	|------------|---|      |	|             |x|  |
-	|            |xxx|      |	|             |x|  |
-	|     #2     |---|--|---|	|---------------|  |
-	|            |  #4  |    	|       #2      |--|
-	|------------|------|    	|---------------|
-	
-	# First window
-	In the case of placing window #4, we test previous points for >= y && >= x than a point we're testing. An example where this would be true is the bottom left corner of window #3 - we attempt to place with our point starting on the same y access as the bottom of #3. In this case it fits.
-	We could even test point 2, and since it's a point on the same axis, we know there's something likely obstructing.
+	// And points
+	points[0].x = c[0].w;
+	points[0].y = 0;
+	points[1].x = c[0].w;
+	points[1].y = c[0].h;
+	points[2].x = 0;
+	points[2].y = c[0].h;
 
-	# Second window
-	First we test #3 to fit, against the secont point (which is the bottom right of #1). It doesn't fit, as #2 is blocking.
-	We now test future points for >= x && >= y points. The top right of #2 meets both reqs, We use that same x axis to place window 3.
-
-*/
+	// Loop through rest of windows
 
 	for (unsigned i = 0; i < count; i++) {
 		out[i].w = c[i].w;
