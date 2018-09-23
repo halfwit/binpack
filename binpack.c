@@ -116,7 +116,7 @@ bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[
 
 	# Second window
 	First we test #3 to fit, against the secont point (which is the bottom right of #1). It doesn't fit, as #2 is blocking.
-	We now test future points for >= x && >= y points. The top right of #2 meets both reqs, We use that same x axis to place window 3, since it won't fit.
+	We now test future points for >= x && >= y points. The top right of #2 meets both reqs, We use that same x axis to place window 3.
 
 */
 
@@ -127,5 +127,6 @@ bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[
 		out[i].y = 0;
 		out[i].wid = c[i].wid;
 	}
+
 	return true;
 }
