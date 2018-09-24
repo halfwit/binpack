@@ -35,7 +35,8 @@ int main(int argc, char* argv[]) {
 	struct Input input[MAX_BIN];
 	struct Output output[MAX_BIN];
 	
-	const size_t length = init_bins(input);
+	const size_t length = init_bins(input, gaps);
+	struct Points points[length];
 	
 	/* Sanity checks */
 	if (length == 0 || height == 0 || width == 0)
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]) {
 	/* Normal function */	
 	if (screens == 1) {
 		/* binpack.c */
-	   	binary_bin_pack(width, height, output, input);
+	   	binary_bin_pack(width, height, output, input, points);
 
 		/* bin_utils.c */
 	   	center(width, height, output, gaps);
@@ -67,8 +68,8 @@ int main(int argc, char* argv[]) {
 	if (screens == 2) {
 		/* binpack.c */
 		split(input, in_a, in_b, length);
-		binary_bin_pack(width/2, height, out_a, in_a);
-		binary_bin_pack(width/2, height, out_b, in_b);
+		binary_bin_pack(width/2, height, out_a, in_a, points);
+		binary_bin_pack(width/2, height, out_b, in_b, points);
 	  	
 		/* bin_utils.c */
 		center(width/2, height, out_a, gaps);
@@ -79,8 +80,6 @@ int main(int argc, char* argv[]) {
 	 }
 
 
-	// TODO: Implement triple head sorting and splitting
-	/*
 	if (screens == 3) {
 		bool bin_switch = true;
 
@@ -94,26 +93,31 @@ int main(int argc, char* argv[]) {
 		}
 		
 		// binpack.c 
-		while (!bin_pack(width/3, height, c, output, count)) {
+		while (!bin_pack(width/3, height, c, output, count, points)) {
+			scrub_output(output);
 			temp = pop(c);
 			(bin_switch) ? push(in_a, temp) : push(in_b, temp);
 			bin_switch = !bin_switch;
+			count-- ;
 		}
 
-		// TODO: Guard against empty structs
-		binary_bin_pack(width/3, height, out_a, in_a);
-		binary_bin_pack(width/3, height, out_b, in_b);
-	
+		if (sizeof(out_a) > 0) {
+			binary_bin_pack(width/3, height, out_a, in_a, points);
+			center(width/3, height, out_a, gaps);
+			print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
+		}
+
+		if (sizeof(out_b) > 0) {
+			binary_bin_pack(width/3, height, out_b, in_b, points);
+			center(width/3, height, out_b, gaps);
+			offset(out_b, width*2/3);
+			print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
+		}
+
 		// bin_utils.c
 		center(width/3, height, output, gaps);
-		center(width/3, height, out_a, gaps);
-		center(width/3, height, out_b, gaps);
 		offset(output, width/3);
-		offset(out_b, width*2/3);
 		print_bin(output, sizeof(output)/sizeof(output[0]));
-		print_bin(out_a, sizeof(out_a)/sizeof(out_a[0]));
-		print_bin(out_b, sizeof(out_b)/sizeof(out_b[0]));
 		
-	}*/
-
+	}
 }

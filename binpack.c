@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "binpack.h"
-#include "points.h"
 
 // Test to see if any bins are already at minimum size, so we can fail gracefully (Insufficient space to draw windows)
 bool isminw(struct Input in[], struct Current c[], unsigned count) {
@@ -43,7 +42,7 @@ bool ismaxh(struct Input in[], struct Current c[], unsigned count) {
 }
 
 // This will iterate through a binary-search style approach, varying the size between the minw/minh and maxw/maxh to try to find the largest set of rectangles to fill the bin
-void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struct Input in[]) {
+void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struct Input in[], struct Points points[]) {
 	
 	unsigned count = sizeof(*in)/sizeof(in[0]) + 1;
 
@@ -56,7 +55,7 @@ void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struc
 	}
 
 	while (1) {
-		if (bin_pack(width, height, c, out, count)) {
+		if (bin_pack(width, height, c, out, count, points)) {
 			if (ismaxw(in, c, count) && ismaxh(in, c, count)) {
 				break;
 			}
@@ -93,32 +92,82 @@ void binary_bin_pack(unsigned width, unsigned height, struct Output out[], struc
 	}
 }
 
+void
+set_bin(struct Output *out, struct Current c, unsigned x, unsigned y) {
+	out->h = c.h;
+	out->w = c.w;
+	out->x = x;
+	out->y = y;
+	out->wid = c.wid;
+}
+
 bool
-bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count) {
+set_point(struct Output *out, struct Current c, struct Points p[], unsigned *count, unsigned bounds, unsigned height) {
+	unsigned top = 0;
+	unsigned side = 0;
+	// Loop through our points to try to fit
+	for (unsigned i = 0; i < *count; i++) {
+		// We could set sentinals here for possible, then collision and set
+		bool potential = false;
+		// Fits beside
+		if (p[i].x + c.w <= bounds) {
+			side = p[i].x;
+			potential = true;
+		} 
+		else if (p[i].y + c.h <= height) {
+			top = p[i].y;
+			// If we're at the last point, side is 0; else our window starts at the greater of either the next point or current. 
+			if ((i + 1) != *count) {
+				side = (p[i + 1].x > p[i].x) ? p[i + 1].x : p[i].x;
+			} else {
+				side = 0;
+			}
+			potential = true;
+			
+		}
+		if (!(potential)) {
+			top = p[i].y;
+			continue;
+		}
+		// There's a collision, try next point
+		//if (collisions(c, side, top, p)) {
+		//	continue;
+		//}
+		set_bin(out, c, side, top);
+		return true;
+	}
+	return false;
+} 
 
-	// Set first window at (0,0)
-	out[0].w = c[0].w;
-	out[0].h = c[0].h;
-	out[0].x = 0;
-	out[0].y = 0;
-	out[0].wid = c[0].wid;
+bool
+bin_pack(unsigned width, unsigned height, struct Current c[], struct Output out[], unsigned count, struct Points p[]) {
 
-	// And points
-	points[0].x = c[0].w;
-	points[0].y = 0;
-	points[1].x = c[0].w;
-	points[1].y = c[0].h;
-	points[2].x = 0;
-	points[2].y = c[0].h;
+	unsigned p_count = 1;
+
+	// Set our initial data up
+	p[0].x = c[0].w;
+	p[0].y = c[0].h;
+	set_bin(&out[0], c[0], 0, 0);
+	
+	// Set our initial bounding box
+	unsigned bounds = c[0].w;
 
 	// Loop through rest of windows
-
-	for (unsigned i = 0; i < count; i++) {
-		out[i].w = c[i].w;
-		out[i].h = c[i].h;
-		out[i].x = 0;
-		out[i].y = 0;
-		out[i].wid = c[i].wid;
+	for (unsigned i = 1; i < count; i++) {
+		// Walk our points, check if we fit. If we fit, all is well; we can go on to the next
+		if (set_point(&out[i], c[i], p, &p_count, bounds, height)) {
+			p_count++;
+			continue;
+		}
+		// Increase our bounds to fit, go from there.
+		if (bounds + c[i].w <= width) {
+			bounds += c[i].w;
+			if (set_point(&out[i], c[i], p, &p_count, bounds, height)) {
+				continue;
+			}
+		}
+		// Binpack failed
+		return false;
 	}
 
 	return true;

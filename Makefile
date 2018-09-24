@@ -2,7 +2,6 @@
 # See LICENSE file for copyright and license details.
 
 SRC = main.c    \
-	  points.c  \
 	  binpack.c \
 	  bin_utils.c
 

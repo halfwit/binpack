@@ -3,14 +3,61 @@
 
 #include "binpack.h"
 
+void
+scrub_output(struct Output out[]) {
+	for (unsigned i = 0; i < sizeof(*out)/sizeof(out[0]); i++) {
+		out[i].w = 0;
+		out[i].h = 0;
+		out[i].x = 0;
+		out[i].y = 0;
+		out[i].wid = 0;
+	}
+}
+
+struct Current
+pop(struct Current c[]) {
+	unsigned offset = sizeof(*c)/sizeof(c[0]) - 1;
+	struct Current tmp;
+	tmp.h = c[offset].h;
+	tmp.w = c[offset].w;
+	tmp.wid = c[offset].wid;
+	c[offset] = c[offset + 1];
+	return tmp;
+}
+
+void
+push(struct Input in[], struct Current temp) {
+	unsigned offset = sizeof(*in)/sizeof(in[0]);
+	in[offset].maxw = temp.w;
+	in[offset].maxh = temp.h;
+	in[offset].minw = temp.w;
+	in[offset].minh = temp.h;
+	in[offset].wid = temp.wid;
+}
+
 // center all windows on given screen
 void center(unsigned width, unsigned height, struct Output out[], unsigned gaps) {
-	// r = rightmost edge of bins
-	// d = bottommost edge of bins
-	// Move all windows (width - r) / 2
-	// Move all windows (height - d) / 2
-	// g = gaps / 2
-	// x - g, y + g, w - g, h - g for all windows 
+	unsigned edge = 0;
+	unsigned bott = 0;
+	unsigned g = gaps / 2;
+	// Find our edges
+	for (size_t i = 0; i <= sizeof(*out)/sizeof(out[0]); i++) {
+		if ((out[i].x + out[i].w) > edge) {
+			edge = (out[i].x + out[i].w);
+		}
+		if ((out[i].y + out[i].h) > bott) {
+			bott = (out[i].y + out[i].h);
+		}
+	}
+	// Bump over
+	for (size_t i = 0; i <= sizeof(*out)/sizeof(out[0]); i++) {
+		out[i].x += ((width - edge) / 2);
+		out[i].y += ((height - bott) / 2);
+		out[i].x -= g;
+		out[i].y += g;
+		out[i].w -= g;
+		out[i].h -= g;
+	}
 }
 
 void sort_bins(struct Input r[], const size_t length) {
@@ -28,12 +75,16 @@ void sort_bins(struct Input r[], const size_t length) {
 }
 
 // read from stdin, setting up our initial data
-size_t init_bins(struct Input r[]) {
+size_t init_bins(struct Input r[], unsigned gaps) {
 	size_t length = 0;
+	unsigned g = (gaps / 2);
 	char line[MAX_BIN];
 	for (unsigned i = 0; fgets(line, sizeof(line), stdin); ++i) {
-		sscanf(line, "%u %u %u %u %X", &r[i].minw, &r[i].minh, &r[i].maxw, &r[i].maxh, &r[i].wid
-);
+		sscanf(line, "%u %u %u %u %X", &r[i].minw, &r[i].minh, &r[i].maxw, &r[i].maxh, &r[i].wid);
+		r[i].maxw += g;
+		r[i].maxh += g;
+		r[i].minw += g;
+		r[i].minh += g;
 		length++;
 	}
 	return length;
