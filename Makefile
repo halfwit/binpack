@@ -1,10 +1,7 @@
 # binpack - lay out windows automatically
 # See LICENSE file for copyright and license details.
 
-SRC = main.c    \
-	  binpack.c \
-	  bin_utils.c
-
+SRC = binpack.c
 OBJ = ${SRC:.c=.o}
 
 all: binpack

@@ -4,7 +4,12 @@
 cd "$(dirname $0)"
 for i in */in*; do
 	size="$(dirname "$i")"
+<<<<<<< HEAD
 	in="$(~/code/binpack/binpack -x "${size%x*}" -y "${size#*x}" -g 6 < "$i" -s 2)"
 	echo "$in"
 	#grep "$in" "$size/out${i#*in*}" >/dev/null && echo "Test $size - ${i#*in*} success"
+=======
+	in="$(binpack -x "${size%x*}" -y "${size#*x}" -g 6 < "$i")"
+	grep "$in" "$size/out${i#*in*}" >/dev/null && echo "Test $size - ${i#*in*} success"
+>>>>>>> parent of 96a6d18... Rework file structure
 done
